@@ -5,17 +5,13 @@ import java.util.Collection;
 
 import linda.*;
 /* Test pour la version centralisée de Linda */
-/* Write + TakeAll */
-public class TestPerso5 {
+/* Write + TryTake */
+public class TestTryTake {
 
     public static void main(String[] a) {
                 
         final Linda linda = new linda.shm.CentralizedLinda();
         // final Linda linda = new linda.server.LindaClient("//localhost:4000/aaa");
-
-        Tuple t1 = new Tuple(4, 5);
-        System.out.println("(2) write: " + t1);
-        linda.write(t1);
 
         Tuple t11 = new Tuple(4, 6);
         System.out.println("(2) write: " + t11);
@@ -29,23 +25,17 @@ public class TestPerso5 {
         System.out.println("(2) write: " + t3);
         linda.write(t3);
                         
-
-
         Tuple motif = new Tuple(Integer.class, Integer.class);
-        Collection<Tuple> res = new ArrayList<Tuple>();
-        res = linda.takeAll(motif);
-        System.out.print("(1) Resultat: ");
-        for (Tuple tuple : res) {
-            System.out.print(tuple + " ");
-        }
-        System.out.println();
+        Tuple res = linda.tryRead(motif);
+        System.out.println("(1) Resultat:" + res);
+    
+       res = linda.tryRead(motif);
+       System.out.println("(1) Resultat:" + res);
 
-        Tuple motif2 = new Tuple(Integer.class, Object.class);
+       Tuple motif2 = new Tuple(String.class, String.class);
         Tuple res2 = linda.tryRead(motif2);
-        System.out.println("(3) Resultat:" + res2);
+        System.out.println("(1) Resultat:" + res2);
 
-        res2 = linda.tryRead(motif);
-        System.out.println("(3) Resultat:" + res2);
 
         
 

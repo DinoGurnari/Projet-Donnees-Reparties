@@ -38,6 +38,14 @@ public class TestPerso4 {
         for (Tuple tuple : res) {
             System.out.print(tuple + " ");
         }
+
+        System.out.println();
+        
+        res = linda.readAll(motif);
+        System.out.print("(1) Resultat: ");
+        for (Tuple tuple : res) {
+            System.out.print(tuple + " ");
+        }
         System.out.println();
                 
     }
