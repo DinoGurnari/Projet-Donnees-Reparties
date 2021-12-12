@@ -96,6 +96,9 @@ public class CentralizedLinda implements Linda {
         if (!donnees.isEmpty()) {
             /* On regarde si on peut Take */
             essaiTake = tryTake(template);
+            if (essaiTake != null) {
+                tuplesTrouves.add(essaiTake);
+            }
             while (essaiTake != null) {
                 /* On est oblige de passer par tryTake pour
                 ne pas modifer la liste sur laquelle on itère */
