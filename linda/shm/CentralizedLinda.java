@@ -30,8 +30,8 @@ public class CentralizedLinda implements Linda {
             if (!donnees.isEmpty()){
                 for (Tuple tuple : donnees) {
                     if (tuple.matches(template)) {
-                        tupleTrouve = template;
-                        donnees.remove(template);
+                        tupleTrouve = tuple;
+                        donnees.remove(tuple);
                         break;
                     }
                 }
@@ -48,7 +48,7 @@ public class CentralizedLinda implements Linda {
             if (!donnees.isEmpty()){
                 for (Tuple tuple : donnees) {
                     if (tuple.matches(template)) {
-                        tupleTrouve = template.deepclone();
+                        tupleTrouve = tuple.deepclone();
                         break;
                     }
                 }
@@ -64,8 +64,8 @@ public class CentralizedLinda implements Linda {
         if (!donnees.isEmpty()) {
             for (Tuple tuple : donnees) {
                 if (tuple.matches(template)) {
-                    tupleTrouve = template;
-                    donnees.remove(template);
+                    tupleTrouve = tuple;
+                    donnees.remove(tuple);
                     break;
                 }
             }        
@@ -80,7 +80,7 @@ public class CentralizedLinda implements Linda {
         if (!donnees.isEmpty()) {
             for (Tuple tuple : donnees) {
                 if (tuple.matches(template)) {
-                    tupleTrouve = template.deepclone();
+                    tupleTrouve = tuple.deepclone();
                     break;
                 }   
             }
@@ -91,13 +91,17 @@ public class CentralizedLinda implements Linda {
     @Override
     public Collection<Tuple> takeAll(Tuple template) {
         ArrayList<Tuple> tuplesTrouves = new ArrayList<Tuple>();
+        Tuple essaiTake;
 
         if (!donnees.isEmpty()) {
-            for (Tuple tuple : donnees) {
-                if (tuple.matches(template)) {
-                    tuplesTrouves.add(template);
-                    donnees.remove(template);
-                    break;
+            /* On regarde si on peut Take */
+            essaiTake = tryTake(template);
+            while (essaiTake != null) {
+                /* On est oblige de passer par tryTake pour
+                ne pas modifer la liste sur laquelle on itère */
+                essaiTake = tryTake(template);
+                if (essaiTake != null) {
+                    tuplesTrouves.add(essaiTake);
                 }
             }
         }
@@ -111,8 +115,7 @@ public class CentralizedLinda implements Linda {
         if (!donnees.isEmpty()) {
             for (Tuple tuple : donnees) {
                 if (tuple.matches(template)) {
-                    tuplesTrouves.add(template.deepclone());
-                    break;
+                    tuplesTrouves.add(tuple.deepclone());
                 }
             }
         }
