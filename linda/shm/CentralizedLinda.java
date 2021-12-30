@@ -3,7 +3,6 @@ package linda.shm;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import linda.Callback;
@@ -14,71 +13,22 @@ import linda.Tuple;
 public class CentralizedLinda implements Linda {
 
     private List<Tuple> donnees;
-    private Boolean ecriture_en_cours;
-    private int nbl;
-    private int nbe;
     private ReentrantLock mon_moniteur = new java.util.concurrent.locks.ReentrantLock();
-    private Condition PL = mon_moniteur.newCondition();
-    private Condition PE = mon_moniteur.newCondition();
-
-
 	
     public CentralizedLinda() {
         donnees = new ArrayList<Tuple>();
-        nbl = 0;
-        nbe = 0;
-        ecriture_en_cours = false;
     }
 
-    void demanderEcriture() throws InterruptedException {
-        mon_moniteur.lock();
-        while (!(!ecriture_en_cours && nbl == 0)){
-            nbe ++;
-            PE.await();
-            nbe --;
-        }
-        ecriture_en_cours = true;
-        mon_moniteur.unlock();
-    }
-
-    void finEcriture() {
-        mon_moniteur.lock();
-        ecriture_en_cours = false;
-        if (nbe != 0){
-            PE.signal();
-        } else {
-            PL.signalAll();
-        }
-        mon_moniteur.unlock();
-    }
-    
-    void demanderLecture() throws InterruptedException {
-        mon_moniteur.lock();
-        while (!(!ecriture_en_cours && nbe == 0)) {
-            PL.await();
-        }
-        nbl ++;
-        mon_moniteur.unlock();
-    }
-
-    void finLecture() {
-        mon_moniteur.lock();
-        nbl--;
-        if (nbl == 0 && nbe > 0) {
-            PE.signal();
-        }
-        mon_moniteur.unlock();
-    }
     @Override
     public void write(Tuple t) {
         try {
-        demanderEcriture();
+            mon_moniteur.lock();
         } catch (Exception e) {
             e.printStackTrace();
         }
         donnees.add(t);     
         
-        finEcriture();
+        mon_moniteur.unlock();
         
     }
 
@@ -88,7 +38,8 @@ public class CentralizedLinda implements Linda {
         Tuple tupleTrouve = null;
         
             while (tupleTrouve == null) {
-                try {  demanderLecture();
+                try {
+                    mon_moniteur.lock();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -101,7 +52,7 @@ public class CentralizedLinda implements Linda {
                         }
                     }
                 }
-                finLecture();
+                mon_moniteur.unlock();
 
             }
             
@@ -115,7 +66,7 @@ public class CentralizedLinda implements Linda {
         
         while (tupleTrouve == null) {
             try {
-                demanderLecture();
+                mon_moniteur.lock();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -127,7 +78,7 @@ public class CentralizedLinda implements Linda {
                     }
                 }
             }
-            finLecture();
+            mon_moniteur.unlock();
         }
         
         return tupleTrouve;
@@ -137,7 +88,7 @@ public class CentralizedLinda implements Linda {
     public Tuple tryTake(Tuple template) {
         Tuple tupleTrouve = null;
         try {
-            demanderEcriture();
+            mon_moniteur.lock();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -150,7 +101,7 @@ public class CentralizedLinda implements Linda {
                 }
             }        
         }
-        finEcriture();
+        mon_moniteur.unlock();
         return tupleTrouve;
     }
 
@@ -158,7 +109,7 @@ public class CentralizedLinda implements Linda {
     public Tuple tryRead(Tuple template) {
         Tuple tupleTrouve = null;
         try {
-            demanderLecture();
+            mon_moniteur.lock();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -170,7 +121,7 @@ public class CentralizedLinda implements Linda {
                 }   
             }
         }
-        finLecture();
+        mon_moniteur.unlock();
         return tupleTrouve;
     }
 
@@ -179,7 +130,7 @@ public class CentralizedLinda implements Linda {
         ArrayList<Tuple> tuplesTrouves = new ArrayList<Tuple>();
         Tuple essaiTake;
         try {
-            demanderEcriture();
+            mon_moniteur.lock();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -198,7 +149,7 @@ public class CentralizedLinda implements Linda {
                 }
             }
         }
-        finEcriture();
+        mon_moniteur.unlock();
         return tuplesTrouves;
     }
 
@@ -206,7 +157,7 @@ public class CentralizedLinda implements Linda {
     public Collection<Tuple> readAll(Tuple template) {
         ArrayList<Tuple> tuplesTrouves = new ArrayList<Tuple>();
         try {
-            demanderLecture();
+            mon_moniteur.lock();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -217,7 +168,7 @@ public class CentralizedLinda implements Linda {
                 }
             }
         }
-        finLecture();
+        mon_moniteur.unlock();
         return tuplesTrouves;
     }
 
