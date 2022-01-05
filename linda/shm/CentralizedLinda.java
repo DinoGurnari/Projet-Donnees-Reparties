@@ -2,6 +2,7 @@ package linda.shm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -14,9 +15,13 @@ public class CentralizedLinda implements Linda {
 
     private List<Tuple> donnees;
     private ReentrantLock mon_moniteur = new java.util.concurrent.locks.ReentrantLock();
+    private List<Reveil> readEnAttente;
+    private List<Reveil> takeEnAttente;
 	
     public CentralizedLinda() {
         donnees = new ArrayList<Tuple>();
+        readEnAttente = new ArrayList<Reveil>();
+        takeEnAttente = new ArrayList<Reveil>();
     }
 
     @Override
@@ -26,60 +31,140 @@ public class CentralizedLinda implements Linda {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        donnees.add(t);     
+        donnees.add(t);
+        
+        // On regarde d'abord si des read sont en attentes
+        if (!readEnAttente.isEmpty()) {
+            // On garde les reveils effectués pour les supprimer à la fin
+            List<Reveil> readEffectues = new ArrayList<Reveil>();
+
+            for (Reveil reveilRead : readEnAttente) {
+                if (t.matches(reveilRead.getMotif())) {
+
+                    synchronized(reveilRead.getThread()) {                            
+                        reveilRead.reveiller();
+                    }
+                    readEffectues.add(reveilRead);
+                }
+            }
+            // On retire les reveils effectués de la liste
+            for (Reveil r : readEffectues) {
+                readEnAttente.remove(r);
+            }
+        }
+
+        // On regarde ensuite si des take sont en attentes
+        if (!takeEnAttente.isEmpty()) {
+            for (Reveil reveilTake : takeEnAttente) {
+                if (t.matches(reveilTake.getMotif())) {
+
+                    synchronized(reveilTake.getThread()) {                            
+                        reveilTake.reveiller();
+                    }
+                    takeEnAttente.remove(reveilTake);
+                    break;
+                }
+            }
+        }
         
         mon_moniteur.unlock();
-        
     }
 
     @Override
     public Tuple take(Tuple template) {
         
-        Tuple tupleTrouve = null;
-        
-            while (tupleTrouve == null) {
-                try {
-                    mon_moniteur.lock();
-                } catch (Exception e) {
+        Tuple tupleTrouve = null;    
+
+        try {
+            mon_moniteur.lock();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (!donnees.isEmpty()){
+            for (Tuple tuple : donnees) {
+                if (tuple.matches(template)) {
+                    tupleTrouve = tuple;
+                    donnees.remove(tuple);
+                    break;
+                }
+            }
+        }
+        if (tupleTrouve == null) {
+            // Le tuple n'a pas été trouvé, on libére le verrou
+            // Nous allons stocker le thread pour le reactiver quand un tuple sera disponible
+            mon_moniteur.unlock();
+
+            Thread threadActuel = Thread.currentThread();
+            Reveil reveil = new Reveil(template, threadActuel);
+            takeEnAttente.add(reveil);
+
+            synchronized(threadActuel) {
+                try { 
+                    threadActuel.wait();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (!donnees.isEmpty()){
-                    for (Tuple tuple : donnees) {
-                        if (tuple.matches(template)) {
-                            tupleTrouve = tuple;
-                            donnees.remove(tuple);
-                            break;
-                        }
-                    }
-                }
-                mon_moniteur.unlock();
-
             }
+            // Le thread est reveillé on recupère alors le tuple
+            mon_moniteur.lock();
+            for (Tuple tuple : donnees) {
+                if (tuple.matches(template)) {
+                    tupleTrouve = tuple;
+                    donnees.remove(tuple);
+                    break;
+                }
+            }
+        }
+
+        mon_moniteur.unlock();
             
-        
         return tupleTrouve;
     }
 
     @Override
     public Tuple read(Tuple template) {
         Tuple tupleTrouve = null;
-        
-        while (tupleTrouve == null) {
-            try {
-                mon_moniteur.lock();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (!donnees.isEmpty()){
-                for (Tuple tuple : donnees) {
-                    if (tuple.matches(template)) {
-                        tupleTrouve = tuple.deepclone();
-                        break;
-                    }
+
+        try {
+            mon_moniteur.lock();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (!donnees.isEmpty()){
+            for (Tuple tuple : donnees) {
+                if (tuple.matches(template)) {
+                    tupleTrouve = tuple.deepclone();
+                    break;
                 }
             }
-            mon_moniteur.unlock();
         }
+        if (tupleTrouve == null) {
+            // Le tuple n'a pas été trouvé, on libére le verrou
+            // Nous allons stocker le thread pour le reactiver quand un tuple sera disponible
+            mon_moniteur.unlock();
+
+            Thread threadActuel = Thread.currentThread();
+            Reveil reveil = new Reveil(template, threadActuel);
+            readEnAttente.add(reveil);
+
+            synchronized(threadActuel) {
+                try { 
+                    threadActuel.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            // Le thread est reveillé on recupère alors le tuple
+            mon_moniteur.lock();
+            for (Tuple tuple : donnees) {
+                if (tuple.matches(template)) {
+                    tupleTrouve = tuple.deepclone();
+                    break;
+                }
+            }
+        }
+
+        mon_moniteur.unlock();
         
         return tupleTrouve;
     }
