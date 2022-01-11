@@ -1,9 +1,7 @@
 package linda.server;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import linda.Callback;
 import linda.Linda;
@@ -20,90 +18,50 @@ public class LindaServer extends java.rmi.server.UnicastRemoteObject implements 
     }
 
     @Override
-    public void write(Tuple t) {
+    public void write(Tuple t) throws RemoteException {
         this.lindaCentralise.write(t);
         
     }
 
     @Override
-    public Tuple take(Tuple template) {
+    public Tuple take(Tuple template) throws RemoteException {
         return this.lindaCentralise.take(template);
     }
 
     @Override
-    public Tuple read(Tuple template) {
+    public Tuple read(Tuple template) throws RemoteException {
         return this.lindaCentralise.read(template);
     }
 
     @Override
-    public Tuple tryTake(Tuple template) {
+    public Tuple tryTake(Tuple template) throws RemoteException {
         return this.lindaCentralise.tryTake(template);
     }
 
     @Override
-    public Tuple tryRead(Tuple template) {
+    public Tuple tryRead(Tuple template) throws RemoteException {
         return this.lindaCentralise.tryRead(template);
     }
 
     @Override
-    public Collection<Tuple> takeAll(Tuple template) {
+    public Collection<Tuple> takeAll(Tuple template) throws RemoteException {
         return this.lindaCentralise.takeAll(template);
     }
 
     @Override
-    public Collection<Tuple> readAll(Tuple template) {
+    public Collection<Tuple> readAll(Tuple template) throws RemoteException {
         return this.lindaCentralise.readAll(template);
     }
 
     @Override
-    public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
+    public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) throws RemoteException {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void debug(String prefix) {
+    public void debug(String prefix) throws RemoteException {
         this.lindaCentralise.debug(prefix);
-    }
-
-    public enum actions {WRITE, READ, TAKE, TRYREAD, TRYTAKE, READALL, TAKEALL};
-
-    @Override
-    public List<Tuple> actionRemote(actions ac, Tuple t) throws RemoteException {
-        ArrayList<Tuple> result = new ArrayList<Tuple>();
-        switch (ac) {
-            case WRITE:
-                write(t);
-                break;
-        
-            case READ:
-                read(t);
-                break;
-
-            case TAKE:
-                take(t);
-                break;
-
-            case TRYREAD:
-                tryRead(t);
-                break;
-
-            case TRYTAKE:
-                tryTake(t);
-                break;
-
-            case READALL:
-                readAll(t);
-                break;
-
-            case TAKEALL:
-                takeAll(t);
-                break;
-
-            default:
-                break;
-        }
-        return result;
     }
     
 }
