@@ -1,7 +1,11 @@
 package linda.server;
 
+import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Collection;
+import java.lang.Integer;
 
 import linda.Callback;
 import linda.Linda;
@@ -11,7 +15,6 @@ import linda.shm.CentralizedLinda;
 public class LindaServer extends java.rmi.server.UnicastRemoteObject implements LindaRemote {
 
     private Linda lindaCentralise;
-    String uri = "//localhost:4000/LindaServer"; // Utiliser un type URI ?
 
     public LindaServer() throws RemoteException {
         this.lindaCentralise = new CentralizedLinda();
@@ -62,6 +65,33 @@ public class LindaServer extends java.rmi.server.UnicastRemoteObject implements 
     @Override
     public void debug(String prefix) throws RemoteException {
         this.lindaCentralise.debug(prefix);
+    }
+
+    public static void main(String[] args) {
+        String URI;
+        int port;
+        try {
+            Integer I = new Integer(args[0]);
+            port = I.intValue();
+        }
+        catch (Exception e) {
+            System.out.println(" Please enter: java LindaServer <port>");
+            return;
+        }
+        try {
+            // Launching the naming service – rmiregistry – within the JVM
+            Registry registry = LocateRegistry.createRegistry(port);
+            // Create an instance of the server object
+            LindaServer serveur = new LindaServer();
+            // compute the URL of the server
+            URI = "//localhost:" + port + "/LindaServer"; // Utiliser un type URI ?
+            Naming.rebind(URI, serveur);
+            System.out.println("Linda Server " + " bound in registry");
+            System.out.println("URI = " + URI);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
 }
