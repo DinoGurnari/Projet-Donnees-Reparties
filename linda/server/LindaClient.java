@@ -1,5 +1,7 @@
 package linda.server;
 
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.util.Collection;
 
 import linda.Callback;
@@ -10,54 +12,93 @@ import linda.Tuple;
  * It implements the Linda interface and propagates everything to the server it is connected to.
  * */
 public class LindaClient implements Linda {
-	
+    
+    private LindaRemote serveur;
+
     /** Initializes the Linda implementation.
      *  @param serverURI the URI of the server, e.g. "rmi://localhost:4000/LindaServer" or "//localhost:4000/LindaServer".
      */
     public LindaClient(String serverURI) {
-        // TO BE COMPLETED
+        try {
+            this.serveur = (LindaRemote) Naming.lookup(serverURI);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void write(Tuple t) {
-        // TODO Auto-generated method stub
-        
+        try {
+            this.serveur.write(t);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
     }
 
     @Override
     public Tuple take(Tuple template) {
-        // TODO Auto-generated method stub
-        return null;
+        Tuple resultat = null;
+        try {
+            resultat = this.serveur.take(template);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
+        return resultat;
     }
 
     @Override
     public Tuple read(Tuple template) {
-        // TODO Auto-generated method stub
-        return null;
+        Tuple resultat = null;
+        try {
+            resultat = this.serveur.read(template);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
+        return resultat;
     }
 
     @Override
     public Tuple tryTake(Tuple template) {
-        // TODO Auto-generated method stub
-        return null;
+        Tuple resultat = null;
+        try {
+            resultat = this.serveur.tryTake(template);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
+        return resultat;
     }
 
     @Override
     public Tuple tryRead(Tuple template) {
-        // TODO Auto-generated method stub
-        return null;
+        Tuple resultat = null;
+        try {
+            resultat = this.serveur.tryRead(template);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
+        return resultat;
     }
 
     @Override
     public Collection<Tuple> takeAll(Tuple template) {
-        // TODO Auto-generated method stub
-        return null;
+        Collection<Tuple> resultat = null;
+        try {
+            resultat = this.serveur.takeAll(template);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
+        return resultat;
     }
 
     @Override
     public Collection<Tuple> readAll(Tuple template) {
-        // TODO Auto-generated method stub
-        return null;
+        Collection<Tuple> resultat = null;
+        try {
+            resultat = this.serveur.readAll(template);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
+        return resultat;
     }
 
     @Override
@@ -68,8 +109,11 @@ public class LindaClient implements Linda {
 
     @Override
     public void debug(String prefix) {
-        // TODO Auto-generated method stub
-        
+        try {
+            this.serveur.debug(prefix);
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        }
     }
     
     // TO BE COMPLETED
