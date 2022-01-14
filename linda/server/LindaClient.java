@@ -103,7 +103,12 @@ public class LindaClient implements Linda {
 
     @Override
     public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
-        // TODO Auto-generated method stub
+        try {
+            RemoteCallbackInterface rci = new RemoteCallback(callback);
+            this.serveur.eventRegister(mode, timing, template, rci);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
     }
 
