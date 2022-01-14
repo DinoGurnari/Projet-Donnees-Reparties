@@ -71,7 +71,7 @@ public class LindaServer extends java.rmi.server.UnicastRemoteObject implements 
         String URI;
         int port;
         try {
-            Integer I = new Integer(args[0]);
+            Integer I = Integer.valueOf(args[0]);
             port = I.intValue();
         }
         catch (Exception e) {
