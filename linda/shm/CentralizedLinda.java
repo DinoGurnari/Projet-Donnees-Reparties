@@ -2,6 +2,7 @@ package linda.shm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,6 +17,7 @@ public class CentralizedLinda implements Linda {
     private ReentrantLock mon_moniteur = new java.util.concurrent.locks.ReentrantLock();
     private List<Reveil> readEnAttente;
     private List<Reveil> takeEnAttente;
+    
 	
     public CentralizedLinda() {
         donnees = new ArrayList<Tuple>();
@@ -31,8 +33,9 @@ public class CentralizedLinda implements Linda {
             e.printStackTrace();
         }
         donnees.add(t);
-        
-        // On regarde d'abord si des read sont en attentes
+
+
+        // On regarde ensuite si des read sont en attentes
         if (!readEnAttente.isEmpty()) {
             // On garde les reveils effectués pour les supprimer à la fin
             List<Reveil> readEffectues = new ArrayList<Reveil>();
@@ -65,8 +68,11 @@ public class CentralizedLinda implements Linda {
                 }
             }
         }
-        
+        // On regarde si des abonnement sont en attentes
+        eventWrite(t);
         mon_moniteur.unlock();
+        
+        
     }
 
     @Override
@@ -258,10 +264,77 @@ public class CentralizedLinda implements Linda {
 
     @Override
     public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
-        // TODO Auto-generated method stub
+        
+        if (timing == eventTiming.IMMEDIATE) {
+            Tuple t = testEvent(mode, template);
+            if (t != null) {
+                callback.call(t);
+            } else {
+                ajouterAbonnement(mode, template, callback);
+                
+            }
+        } else {
+            ajouterAbonnement(mode, template,callback);
+            
+        }
         
     }
+    // stockage des abonnements dans une hashmap
+    private HashMap<Tuple, List<Event>> eventMap = new HashMap<>();
 
+    // classe regroupant le mode et le callback, il est ensuite mis dans la liste du tuple associé
+    class Event {
+        eventMode m;
+        Callback c;
+        Event(eventMode m, Callback c) {
+            this.m = m;
+            this.c = c;
+        }
+    }
+
+    // ajoute l'eventregister à la liste d'abonnement
+    private void ajouterAbonnement(eventMode mode, Tuple template, Callback callback) {
+        Event e = new Event(mode, callback);
+        List<Event> le = eventMap.get(template);
+        if (le == null) {
+            
+            List<Event> nle = new ArrayList<>();
+            nle.add(e);
+            eventMap.put(template, nle);
+        } else {
+            eventMap.get(template).add(e);
+        }
+    }
+    
+    
+    Tuple testEvent (eventMode mode, Tuple template) {
+        Tuple t = null;
+        if (mode == eventMode.READ) {
+        t = tryRead(template);
+        } else {
+            t = tryTake(template);
+        }
+        return t;
+    }
+
+    void eventWrite (Tuple tuple) {
+        
+        List<Event> e = eventMap.get(tuple);
+        Tuple t = null;
+        if (e != null) {
+            for (Event i : e) {
+                
+                t = testEvent(i.m, tuple);
+                if (t != null) {
+                    System.out.println("salut");
+                    i.c.call(t);
+                    e.remove(i);
+                }
+                
+            }
+        }
+        
+    }
     @Override
     public void debug(String prefix) {
         System.out.println(prefix);
