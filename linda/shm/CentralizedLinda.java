@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import linda.Callback;
@@ -55,7 +56,7 @@ public class CentralizedLinda implements Linda {
             }
         }
         // On regarde si des abonnement read sont en attentes
-        eventWriteRead(t);
+        eventWrite(eventMode.READ, t);
 
         // On regarde ensuite si des take sont en attentes
         if (!takeEnAttente.isEmpty()) {
@@ -72,7 +73,7 @@ public class CentralizedLinda implements Linda {
         }
         // On regarde si des abonnement take sont en attentes
 
-        eventWriteTake(t);
+        eventWrite(eventMode.TAKE, t);
 
         mon_moniteur.unlock();
         
@@ -323,42 +324,28 @@ public class CentralizedLinda implements Linda {
         return t;
     }
 
-    void eventWriteRead (Tuple tuple) {
-        
-        List<Callback> lc = eventRead.get(tuple);
+    void eventWrite (eventMode mode, Tuple tuple) {
+        Set<Tuple> te = (mode == eventMode.READ) ? eventRead.keySet() : eventTake.keySet();
+        List<Callback> lc = new ArrayList<>();
+        if (te.isEmpty()) {
+        }
+        for (Tuple i : te)
+            if (tuple.matches(i)) {
+                lc.addAll((mode == eventMode.READ) ? eventRead.get(i) : eventTake.get(i));
+            }
         Tuple t = null;
-        if (lc != null) {
-            for (Callback i : lc) {
-                
-                t = testEvent(eventMode.READ, tuple);
-                if (t != null) {
+        for (Callback i : lc) {
 
-                    i.call(t);
-                    lc.remove(i);
-                }
+            t = testEvent(mode, tuple);
+            if (t != null) {
+
+                i.call(t);
                 
             }
-        }
-        
+            
+        } 
     }
 
-    void eventWriteTake (Tuple tuple) {
-        
-        List<Callback> lc = eventTake.get(tuple);
-        Tuple t = null;
-        if (lc != null) {
-            for (Callback i : lc) {
-                
-                t = testEvent(eventMode.TAKE, tuple);
-                if (t != null) {
-                    i.call(t);
-                    lc.remove(i);
-                }
-                
-            }
-        }
-        
-    }
 
     @Override
     public void debug(String prefix) {
