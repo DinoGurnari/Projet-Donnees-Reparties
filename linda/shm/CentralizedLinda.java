@@ -284,32 +284,42 @@ public class CentralizedLinda implements Linda {
         }
         mon_moniteur.unlock();
     }
+
+
+    class Event {
+        private Tuple t;
+        private Callback c;
+
+        Event(Tuple t, Callback c) {
+            this.t =t;
+            this.c =c;
+        }
+
+        public Callback getC() {
+            return c;
+        }
+
+        public Tuple getT() {
+            return t;
+        }
+    }
+
     // stockage des abonnements dans une hashmap
-    private HashMap<Tuple, List<Callback>> eventTake = new HashMap<>();
-    private HashMap<Tuple, List<Callback>> eventRead = new HashMap<>();    
+    private List<Event> eventTake = new ArrayList<>();
+    private List<Event> eventRead = new ArrayList<>();    
 
 
     // ajoute l'eventregister à la liste d'abonnement
     private void ajouterAbonnement(eventMode mode, Tuple template, Callback callback) {
         
-        List<Callback> lc = ((mode == eventMode.TAKE) ? eventTake.get(template) : eventRead.get(template));
-        if (lc == null) {
-            
-            List<Callback> nlc = new ArrayList<>();
-            nlc.add(callback);
-            if (mode == eventMode.TAKE) {
-                eventTake.put(template, nlc);
-            } else {
-                eventRead.put(template, nlc);
-            }
+        
+
+        if (mode == eventMode.TAKE) {
+            eventTake.add(new Event(template, callback));
         } else {
-            lc.add(callback);
-            if (mode == eventMode.TAKE) {
-                eventTake.put(template, lc);
-            } else {
-                eventRead.put(template, lc);
-            }
+            eventRead.add(new Event(template, callback));
         }
+        
     }
     
     
@@ -325,25 +335,23 @@ public class CentralizedLinda implements Linda {
     }
 
     void eventWrite (eventMode mode, Tuple tuple) {
-        Set<Tuple> te = (mode == eventMode.READ) ? eventRead.keySet() : eventTake.keySet();
-        List<Callback> lc = new ArrayList<>();
-        if (te.isEmpty()) {
-        }
-        for (Tuple i : te)
-            if (tuple.matches(i)) {
-                lc.addAll((mode == eventMode.READ) ? eventRead.get(i) : eventTake.get(i));
-            }
-        Tuple t = null;
-        for (Callback i : lc) {
+        List<Event> aSupp = new ArrayList<>();
 
-            t = testEvent(mode, tuple);
-            if (t != null) {
+            for (Event i : ((mode == eventMode.READ) ? eventRead : eventTake)) {
+                if (tuple.matches(i.getT())) {
+                    Tuple t = null;
+                    t = testEvent(mode, tuple);
+                    if (t != null) {
 
-                i.call(t);
-                
+                        aSupp.add(i);
+                    }
+                }
             }
-            
-        } 
+            for (Event i : aSupp) {
+                i.getC().call(tuple);
+            }
+            eventRead.removeAll(aSupp);     
+
     }
 
 
