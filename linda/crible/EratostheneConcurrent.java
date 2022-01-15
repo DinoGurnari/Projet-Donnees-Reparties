@@ -8,10 +8,9 @@ import linda.Tuple;
 import linda.server.LindaClient;
 import linda.shm.CentralizedLinda;
 
-public class EratostheneSequentiel implements Eratosthene {
-
-    public EratostheneSequentiel(){
-    }
+public class EratostheneConcurrent implements Eratosthene {
+    
+    public EratostheneConcurrent() {};
 
     public static void main(String[] args) {
         String URI = null;
@@ -29,7 +28,7 @@ public class EratostheneSequentiel implements Eratosthene {
             URI = args[2];
         }
         catch (Exception e) {
-            System.out.println(" Please enter: java EratostheneSequentiel <n> <CENTRALIZED|REMOTE> <URI>");
+            System.out.println(" Please enter: java EratostheneConcurrent <n> <CENTRALIZED|REMOTE> <URI>");
             return;
         }
         /* On instantie un Linda suivant le mode choisi */
@@ -61,4 +60,5 @@ public class EratostheneSequentiel implements Eratosthene {
         System.out.print(resultat.toString());
 
     }
+
 }
