@@ -7,8 +7,10 @@ public class TestPerso2 {
 
     public static void main(String[] a) {
                 
-        // final Linda linda = new linda.shm.CentralizedLinda();
-        final Linda linda = new linda.server.LindaClient("//localhost:4000/LindaServer");
+        final Linda linda = new linda.shm.CentralizedLinda();
+        //final Linda linda = new linda.server.LindaClient("//localhost:4000/LindaServer");
+
+        System.out.println("Resultat attendu : [ 4 \"foo\" ]");
 
         Tuple t1 = new Tuple(4, 5);
         System.out.println("(2) write: " + t1);

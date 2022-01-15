@@ -10,6 +10,8 @@ public class TestPerso3 {
         final Linda linda = new linda.shm.CentralizedLinda();
         // final Linda linda = new linda.server.LindaClient("//localhost:4000/LindaServer");
 
+        System.out.println("Resultat attendu : null");
+
         Tuple t1 = new Tuple(4, 5);
         System.out.println("(2) write: " + t1);
         linda.write(t1);

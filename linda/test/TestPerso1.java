@@ -10,6 +10,8 @@ public class TestPerso1 {
         final Linda linda = new linda.shm.CentralizedLinda();
         // final Linda linda = new linda.server.LindaClient("//localhost:4000/LindaServer");
 
+        System.out.println("Resultat attendu : [ 4 \"foo\" ]");
+
         Tuple t1 = new Tuple(4, 5);
         System.out.println("(2) write: " + t1);
         linda.write(t1);
@@ -27,7 +29,7 @@ public class TestPerso1 {
         linda.write(t3);
 
 
-
+        
         Tuple motif = new Tuple(Integer.class, String.class);
         Tuple res = linda.take(motif);
         System.out.println("(1) Resultat:" + res);

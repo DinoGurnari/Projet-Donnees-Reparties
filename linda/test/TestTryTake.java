@@ -10,6 +10,8 @@ public class TestTryTake {
         final Linda linda = new linda.shm.CentralizedLinda();
         // final Linda linda = new linda.server.LindaClient("//localhost:4000/LindaServer");
 
+        System.out.println("Resultat attendu : [ 4 6 ], [ 4 6 ], null");
+
         Tuple t11 = new Tuple(4, 6);
         System.out.println("(2) write: " + t11);
         linda.write(t11);
@@ -26,10 +28,10 @@ public class TestTryTake {
         Tuple res = linda.tryRead(motif);
         System.out.println("(1) Resultat:" + res);
     
-       res = linda.tryRead(motif);
-       System.out.println("(1) Resultat:" + res);
+        res = linda.tryRead(motif);
+        System.out.println("(1) Resultat:" + res);
 
-       Tuple motif2 = new Tuple(String.class, String.class);
+        Tuple motif2 = new Tuple(String.class, String.class);
         Tuple res2 = linda.tryRead(motif2);
         System.out.println("(1) Resultat:" + res2);
 
