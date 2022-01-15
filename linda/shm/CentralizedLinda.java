@@ -318,6 +318,7 @@ public class CentralizedLinda implements Linda {
             t = tryRead(template);
         } else {
             t = tryTake(template);
+            
         }
         return t;
     }

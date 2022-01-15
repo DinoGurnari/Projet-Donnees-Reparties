@@ -59,7 +59,7 @@ public class LindaServer extends java.rmi.server.UnicastRemoteObject implements 
     @Override
     public void  eventRegister(linda.Linda.eventMode mode, linda.Linda.eventTiming timing, Tuple template, RemoteCallbackInterface callback) throws RemoteException {
         RemoteCallbackServeur rcs = new RemoteCallbackServeur(callback);
-        lindaCentralise.eventRegister(mode, timing, template, (Callback) rcs);
+        lindaCentralise.eventRegister(mode, timing, template, rcs);
         
     }
 

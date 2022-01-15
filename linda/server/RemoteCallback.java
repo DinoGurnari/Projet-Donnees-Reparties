@@ -3,10 +3,10 @@ import java.rmi.RemoteException;
 import linda.Callback;
 import linda.Tuple;
 
-public class RemoteCallback implements RemoteCallbackInterface {
+public class RemoteCallback extends java.rmi.server.UnicastRemoteObject implements RemoteCallbackInterface {
     private Callback cb;
 
-    RemoteCallback (Callback cb) {
+    RemoteCallback (Callback cb) throws RemoteException {
         this.cb = cb;
     }
 

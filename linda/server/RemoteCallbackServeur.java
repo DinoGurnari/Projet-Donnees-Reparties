@@ -1,12 +1,7 @@
 package linda.server;
-
-
-
-import javax.security.auth.callback.Callback;
-
 import linda.Tuple;
 
-public class RemoteCallbackServeur implements Callback {
+public class RemoteCallbackServeur implements linda.Callback {
     private RemoteCallbackInterface callback;
 
     RemoteCallbackServeur(RemoteCallbackInterface cb) {
