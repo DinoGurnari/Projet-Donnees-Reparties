@@ -7,3 +7,7 @@ Adrien Chevallereau, Dino Gurnari et Ghislain Reveiller
 Permet de compiler et supprimer les fichiers de compilation plus facilement :
 
     source compilation.sh
+    
+## Lancement du serveur Linda
+
+    java LindaServer <port>
