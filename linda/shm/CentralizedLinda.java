@@ -54,6 +54,8 @@ public class CentralizedLinda implements Linda {
                 readEnAttente.remove(r);
             }
         }
+        // On regarde si des abonnement read sont en attentes
+        eventWriteRead(t);
 
         // On regarde ensuite si des take sont en attentes
         if (!takeEnAttente.isEmpty()) {
@@ -68,8 +70,10 @@ public class CentralizedLinda implements Linda {
                 }
             }
         }
-        // On regarde si des abonnement sont en attentes
-        eventWrite(t);
+        // On regarde si des abonnement take sont en attentes
+
+        eventWriteTake(t);
+
         mon_moniteur.unlock();
         
         
@@ -264,7 +268,7 @@ public class CentralizedLinda implements Linda {
 
     @Override
     public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
-        
+        mon_moniteur.lock();
         if (timing == eventTiming.IMMEDIATE) {
             Tuple t = testEvent(mode, template);
             if (t != null) {
@@ -274,35 +278,36 @@ public class CentralizedLinda implements Linda {
                 
             }
         } else {
-            ajouterAbonnement(mode, template,callback);
+            ajouterAbonnement(mode, template, callback);
             
         }
-        
+        mon_moniteur.unlock();
     }
     // stockage des abonnements dans une hashmap
-    private HashMap<Tuple, List<Event>> eventMap = new HashMap<>();
+    private HashMap<Tuple, List<Callback>> eventTake = new HashMap<>();
+    private HashMap<Tuple, List<Callback>> eventRead = new HashMap<>();    
 
-    // classe regroupant le mode et le callback, il est ensuite mis dans la liste du tuple associé
-    class Event {
-        eventMode m;
-        Callback c;
-        Event(eventMode m, Callback c) {
-            this.m = m;
-            this.c = c;
-        }
-    }
 
     // ajoute l'eventregister à la liste d'abonnement
     private void ajouterAbonnement(eventMode mode, Tuple template, Callback callback) {
-        Event e = new Event(mode, callback);
-        List<Event> le = eventMap.get(template);
-        if (le == null) {
+        
+        List<Callback> lc = ((mode == eventMode.TAKE) ? eventTake.get(template) : eventRead.get(template));
+        if (lc == null) {
             
-            List<Event> nle = new ArrayList<>();
-            nle.add(e);
-            eventMap.put(template, nle);
+            List<Callback> nlc = new ArrayList<>();
+            nlc.add(callback);
+            if (mode == eventMode.TAKE) {
+                eventTake.put(template, nlc);
+            } else {
+                eventRead.put(template, nlc);
+            }
         } else {
-            eventMap.get(template).add(e);
+            lc.add(callback);
+            if (mode == eventMode.TAKE) {
+                eventTake.put(template, lc);
+            } else {
+                eventRead.put(template, lc);
+            }
         }
     }
     
@@ -310,31 +315,50 @@ public class CentralizedLinda implements Linda {
     Tuple testEvent (eventMode mode, Tuple template) {
         Tuple t = null;
         if (mode == eventMode.READ) {
-        t = tryRead(template);
+            t = tryRead(template);
         } else {
             t = tryTake(template);
         }
         return t;
     }
 
-    void eventWrite (Tuple tuple) {
+    void eventWriteRead (Tuple tuple) {
         
-        List<Event> e = eventMap.get(tuple);
+        List<Callback> lc = eventRead.get(tuple);
         Tuple t = null;
-        if (e != null) {
-            for (Event i : e) {
+        if (lc != null) {
+            for (Callback i : lc) {
                 
-                t = testEvent(i.m, tuple);
+                t = testEvent(eventMode.READ, tuple);
                 if (t != null) {
-                    System.out.println("salut");
-                    i.c.call(t);
-                    e.remove(i);
+
+                    i.call(t);
+                    lc.remove(i);
                 }
                 
             }
         }
         
     }
+
+    void eventWriteTake (Tuple tuple) {
+        
+        List<Callback> lc = eventTake.get(tuple);
+        Tuple t = null;
+        if (lc != null) {
+            for (Callback i : lc) {
+                
+                t = testEvent(eventMode.TAKE, tuple);
+                if (t != null) {
+                    i.call(t);
+                    lc.remove(i);
+                }
+                
+            }
+        }
+        
+    }
+
     @Override
     public void debug(String prefix) {
         System.out.println(prefix);
