@@ -1,5 +1,6 @@
 package linda.server;
 
+import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.util.Collection;
@@ -14,6 +15,7 @@ import linda.Tuple;
 public class LindaClient implements Linda {
     
     private LindaRemote serveur;
+    private int cbId;
 
     /** Initializes the Linda implementation.
      *  @param serverURI the URI of the server, e.g. "rmi://localhost:4000/LindaServer" or "//localhost:4000/LindaServer".
@@ -24,6 +26,7 @@ public class LindaClient implements Linda {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        cbId = 0;
     }
 
     @Override
@@ -105,7 +108,12 @@ public class LindaClient implements Linda {
     public void eventRegister(eventMode mode, eventTiming timing, Tuple template, Callback callback) {
         try {
             RemoteCallbackInterface rci = new RemoteCallback(callback);
-            this.serveur.eventRegister(mode, timing, template, rci);
+
+            String cbURI = "//" + InetAddress.getLocalHost().getHostName() + ":" + "4000/RemoteCallback" + cbId;
+
+            Naming.rebind(cbURI, rci);
+            cbId++;
+            this.serveur.eventRegister(mode, timing, template, rci, cbURI);
         } catch (Exception e) {
             e.printStackTrace();
         }

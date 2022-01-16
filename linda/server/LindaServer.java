@@ -7,7 +7,6 @@ import java.rmi.registry.Registry;
 import java.util.Collection;
 import java.lang.Integer;
 
-import linda.Callback;
 import linda.Linda;
 import linda.Tuple;
 import linda.shm.CentralizedLinda;
@@ -57,8 +56,8 @@ public class LindaServer extends java.rmi.server.UnicastRemoteObject implements 
     }
 
     @Override
-    public void  eventRegister(linda.Linda.eventMode mode, linda.Linda.eventTiming timing, Tuple template, RemoteCallbackInterface callback) throws RemoteException {
-        RemoteCallbackServeur rcs = new RemoteCallbackServeur(callback);
+    public void  eventRegister(linda.Linda.eventMode mode, linda.Linda.eventTiming timing, Tuple template, RemoteCallbackInterface callback, String callbackURI) throws RemoteException {
+        RemoteCallbackServeur rcs = new RemoteCallbackServeur(callbackURI);
         lindaCentralise.eventRegister(mode, timing, template, rcs);
         
     }
@@ -85,7 +84,7 @@ public class LindaServer extends java.rmi.server.UnicastRemoteObject implements 
             // Create an instance of the server object
             LindaServer serveur = new LindaServer();
             // compute the URL of the server
-            URI = "//localhost:" + port + "/LindaServer"; // Utiliser un type URI ?
+            URI = "//localhost:" + port + "/LindaServer";
             Naming.rebind(URI, serveur);
             System.out.println("Linda Server " + " bound in registry");
             System.out.println("URI = " + URI);
