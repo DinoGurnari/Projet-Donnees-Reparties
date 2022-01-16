@@ -39,7 +39,7 @@ public class ComparaisonTempsCrible {
 
     public static void main(String[] args) {
         // Nous allons evaluer le temps d'exécution pour differentes valeurs de n
-        int listeN[] = {10, 50, 100, 500, 1000, 5000, 10000};
+        int listeN[] = {10, 50, 100, 500, 1000, 5000, 10000, 50000};
 
         Duration tpsSeq[] = new Duration[listeN.length];
         Duration tpsConc[] = new Duration[listeN.length];
