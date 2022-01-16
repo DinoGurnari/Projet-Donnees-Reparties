@@ -14,6 +14,10 @@ public class EratostheneConcurrent implements Eratosthene {
     
     public EratostheneConcurrent() {}
 
+    public EratostheneConcurrent(String[] args) {
+        main(args);
+    }
+
     public static void main(String[] args) {
         String URI = null;
         mode m;
@@ -71,7 +75,8 @@ public class EratostheneConcurrent implements Eratosthene {
 
         /* On les affiches */
         System.out.println("Les nombres premiers jusqu'à " + n + " sont :");
-        System.out.println(resultat.toString());  
+        System.out.println(resultat.toString());
+        System.out.println("Il y en a : " + resultat.size());
 
     }
 

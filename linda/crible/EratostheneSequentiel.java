@@ -10,7 +10,10 @@ import linda.shm.CentralizedLinda;
 
 public class EratostheneSequentiel implements Eratosthene {
 
-    public EratostheneSequentiel(){
+    public EratostheneSequentiel(){}
+
+    public EratostheneSequentiel(String[] args) {
+        main(args);
     }
 
     public static void main(String[] args) {
@@ -58,7 +61,7 @@ public class EratostheneSequentiel implements Eratosthene {
 
         /* On les affiches */
         System.out.println("Les nombres premiers jusqu'à " + n + " sont :");
-        System.out.print(resultat.toString());
-
+        System.out.println(resultat.toString());
+        System.out.println("Il y en a :" + resultat.size());
     }
 }
